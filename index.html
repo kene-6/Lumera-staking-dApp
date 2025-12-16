@@ -1,0 +1,62 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lumera Staking dApp</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0b0f1a;
+      color: #ffffff;
+      padding: 20px;
+    }
+    h1 {
+      color: #7cf5d2;
+    }
+    .validator {
+      background: #141a2e;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🚀 Lumera Staking dApp</h1>
+  <p>Live validator data from the Lumera blockchain.</p>
+
+  <div id="validators">Loading validators...</div>
+
+  <script>
+    const API =
+      "https://api.lumera.io/cosmos/staking/v1beta1/validators";
+
+    fetch(API)
+      .then(res => res.json())
+      .then(data => {
+        const container = document.getElementById("validators");
+        container.innerHTML = "";
+
+        data.validators.forEach(v => {
+          const div = document.createElement("div");
+          div.className = "validator";
+          div.innerHTML = `
+            <strong>${v.description.moniker}</strong><br>
+            Status: ${v.status}<br>
+            Commission: ${(v.commission.commission_rates.rate * 100).toFixed(2)}%<br>
+            Tokens: ${Number(v.tokens).toLocaleString()}
+          `;
+          container.appendChild(div);
+        });
+      })
+      .catch(err => {
+        document.getElementById("validators").innerText =
+          "Failed to load data.";
+        console.error(err);
+      });
+  </script>
+
+</body>
+</html>
