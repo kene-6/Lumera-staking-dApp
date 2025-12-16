@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumera dApp Demo</title>
+</head>
+<body>
+    <h2>Lumera dApp (Cosmos SDK)</h2>
+
+    <button id="connect">Connect Wallet</button>
+    <div id="status"></div>
+    <div id="address"></div>
+
+    <script type="module">
+        import { SigningStargateClient } from "https://cdn.jsdelivr.net/npm/@cosmjs/stargate@1.7.1/+esm";
+
+        const chainId = "lumera-mainnet-1";  // change to testnet if needed
+        const rpcEndpoint = "https://rpc.lumera.io:443";  // example RPC (you may need official RPC)
+
+        const btn = document.getElementById("connect");
+        const statusDiv = document.getElementById("status");
+        const addressDiv = document.getElementById("address");
+
+        async function connect() {
+            if (!window.keplr) {
+                alert("Please install Keplr Wallet!");
+                return;
+            }
+
+            try {
+                // Suggest the chain to Keplr
+                await window.keplr.experimentalSuggestChain({
+                    chainId: chainId,
+                    chainName: "Lumera",
+                    rpc: rpcEndpoint,
+                    rest: "https://lcd.lumera.io",
+                    stakeCurrency: {
+                        coinDenom: "LUME",
+                        coinMinimalDenom: "ulume",
+                        coinDecimals: 6
+                    },
+                    bip44: { coinType: 118 },
+                    bech32Config: {
+                        bech32PrefixAccAddr: "lumera",
+                        bech32PrefixAccPub: "lumerapub",
+                        bech32PrefixValAddr: "lumeravaloper",
+                        bech32PrefixValPub: "lumeravaloperpub",
+                        bech32PrefixConsAddr: "lumeravalcons",
+                        bech32PrefixConsPub: "lumeravalconspub"
+                    },
+                    currencies: [
+                        {
+                            coinDenom: "LUME",
+                            coinMinimalDenom: "ulume",
+                            coinDecimals: 6
+                        }
+                    ],
+                    feeCurrencies: [
+                        {
+                            coinDenom: "LUME",
+                            coinMinimalDenom: "ulume",
+                            coinDecimals: 6
+                        }
+                    ],
+                    gasPriceStep: {
+                        low: 0.01,
+                        average: 0.025,
+                        high: 0.04
+                    }
+                });
+
+                // Enable the wallet
+                await window.keplr.enable(chainId);
+
+                // Get offline signer
+                const offlineSigner = window.keplr.getOfflineSigner(chainId);
+
+                // Connect to chain
+                const client = await SigningStargateClient.connectWithSigner(rpcEndpoint, offlineSigner);
+
+                statusDiv.textContent = "Connected!";
+                const accounts = await offlineSigner.getAccounts();
+                addressDiv.textContent = "Address: " + accounts[0].address;
+
+                console.log("Client:", client, "Accounts:", accounts);
+            } catch (error) {
+                console.error(error);
+                statusDiv.textContent = "Connection failed.";
+            }
+        }
+
+        btn.addEventListener("click", connect);
+    </script>
+</body>
+</html>
